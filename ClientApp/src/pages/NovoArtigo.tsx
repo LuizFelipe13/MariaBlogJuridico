@@ -9,11 +9,38 @@ const NovoArtigo = () => {
     const [conteudo, setConteudo] = useState('');
     const navigate = useNavigate();
 
-    const handleSalvar = () => {
-        // Aqui depois vamos conectar com o C#
-        console.log({ titulo, conteudo });
-        alert("Artigo salvo (simulação)!");
-        navigate('/'); // Volta para a home
+    const handleSalvar = async () => {
+        // 1. Validar se escreveu algo
+        if (!titulo || !conteudo) {
+            alert("Por favor, preencha o título e o conteúdo.");
+            return;
+        }
+
+        try {
+            // 2. Enviar para o C# (Backend)
+            const resposta = await fetch('https://localhost:7298/artigos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    titulo: titulo,
+                    conteudo: conteudo,
+                    autor: "Dr. Luiz Felipe" // Depois podemos pegar do login
+                })
+            });
+
+            // 3. Verificar se deu certo
+            if (resposta.ok) {
+                alert("Artigo publicado com sucesso! 🚀");
+                navigate('/'); // Volta para a tela inicial
+            } else {
+                alert("Erro ao publicar. Tente novamente.");
+            }
+        } catch (error) {
+            console.error("Erro de conexão:", error);
+            alert("Falha ao conectar com o servidor.");
+        }
     };
 
     return (
