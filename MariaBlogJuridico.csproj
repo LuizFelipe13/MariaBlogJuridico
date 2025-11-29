@@ -31,6 +31,8 @@
   <ItemGroup>
     <None Remove="ClientApp\src\components\Layout.tsx" />
     <None Remove="ClientApp\src\custom.css" />
+    <None Remove="ClientApp\src\pages\EditarArtigo.tsx" />
+    <None Remove="ClientApp\src\pages\LerArtigo.tsx" />
     <None Remove="ClientApp\src\pages\NovoArtigo.tsx" />
   </ItemGroup>
 
