@@ -1,81 +1,129 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using MariaBlogJuridico.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore; // Necessário para o banco de dados
+using MariaBlogJuridico.Data;        // Necessário para ver o AppDbContext
+using MariaBlogJuridico.Models;      // Necessário para ver o Artigo
 
 namespace MariaBlogJuridico.Controllers
 {
-    [Route("[controller]")] // Isso cria o endereço /artigos
+    [Route("[controller]")]
     [ApiController]
     public class ArtigosController : ControllerBase
     {
-        // Uma lista estática para guardar os artigos na memória (enquanto o servidor roda)
-        private static List<Artigo> ListaDeArtigos = new List<Artigo>
+        private readonly AppDbContext _context;
+
+        // Construtor: O sistema entrega-nos a ligação ao banco aqui
+        public ArtigosController(AppDbContext context)
         {
-            new Artigo {id = 1, Titulo = "Exemplo de artigo", Conteudo = "<p>Texto...</p>",
-                DataPublicacao = DateTime.Now, Autor = "Sistema"}
-        };
-
-        [HttpGet]
-
-        // Devolve todos os artigos para o Frontend
-        public IEnumerable<Artigo> Get() {
-            return ListaDeArtigos;
+            _context = context;
         }
 
-        // GET: /Artigos/5
-        [HttpGet("{id}")]
-        public IActionResult GetPorId(int id) { 
+        // GET: /Artigos (Lê todos do banco)
+        // GET: /Artigos?termo=trabalhista
+        [HttpGet]
+        public async Task<IEnumerable<Artigo>> Get([FromQuery] string? termo)
+        {
+            var query = _context.Artigos.AsQueryable();
 
-            // Busca na lista o artigo que tem aquele ID
-            var artigo = ListaDeArtigos.FirstOrDefault(a => a.id == id);
-
-            if (artigo == null)
+            if (!string.IsNullOrEmpty(termo))
             {
-                return NotFound(); // Retorna erro 404 se não achar
+                // Filtra se o termo aparecer no Título OU no Conteúdo
+                query = query.Where(a => a.Titulo.Contains(termo) || a.Conteudo.Contains(termo));
             }
 
-            return Ok(artigo); // Retorna o artigo encontrado
+            // Ordena: Artigos mais novos aparecem primeiro (Decrescente)
+            return await query.OrderByDescending(a => a.DataPublicacao).ToListAsync();
         }
 
-        // DELETE: /Artigos/5
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        // GET: /Artigos/5 (Lê um específico)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetPorId(int id)
         {
-            var artigo = ListaDeArtigos.FirstOrDefault(a => a.id == id);
+            var artigo = await _context.Artigos.FindAsync(id);
+
             if (artigo == null) return NotFound();
 
-            ListaDeArtigos.Remove(artigo);
-            return NoContent();
+            return Ok(artigo);
         }
 
-        [HttpPost]
-        public IActionResult Post([FromBody] Artigo novoArtigo)
+        // POST: /Artigos/upload
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadImagem(IFormFile arquivo)
         {
-            // Recebe o artigo novo
-            novoArtigo.id = ListaDeArtigos.Count + 1;
+            if (arquivo == null || arquivo.Length == 0)
+                return BadRequest("Nenhuma imagem enviada.");
+
+            // 1. Gera um nome único para a imagem (ex: 3842-foto.jpg)
+            var nomeArquivo = Guid.NewGuid().ToString() + Path.GetExtension(arquivo.FileName);
+
+            // 2. Caminho onde vai salvar (Pasta wwwroot/imagens)
+            var caminhoPasta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "imagens");
+
+            // Garante que a pasta existe
+            if (!Directory.Exists(caminhoPasta))
+                Directory.CreateDirectory(caminhoPasta);
+
+            var caminhoCompleto = Path.Combine(caminhoPasta, nomeArquivo);
+
+            // 3. Salva o arquivo no disco
+            using (var stream = new FileStream(caminhoCompleto, FileMode.Create))
+            {
+                await arquivo.CopyToAsync(stream);
+            }
+
+            // 4. Retorna a URL pública para o React usar
+            // Exemplo: https://localhost:7298/imagens/3842-foto.jpg
+            var urlImagem = $"{Request.Scheme}://{Request.Host}/imagens/{nomeArquivo}";
+
+            return Ok(new { url = urlImagem });
+        }
+
+        // POST: /Artigos (Cria um novo)
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] Artigo novoArtigo)
+        {
+            // Define a data de agora
             novoArtigo.DataPublicacao = DateTime.Now;
 
-            // Salva na lista
-            ListaDeArtigos.Add(novoArtigo);
+            // Adiciona ao contexto (mas ainda não gravou)
+            _context.Artigos.Add(novoArtigo);
+
+            // Grava de verdade no SQL
+            await _context.SaveChangesAsync();
 
             return Ok(novoArtigo);
         }
-        // PUT: /Artigos/5
+
+        // PUT: /Artigos/5 (Atualiza)
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] Artigo artigoAtualizado)
+        public async Task<IActionResult> Put(int id, [FromBody] Artigo artigoAtualizado)
         {
-            // 1. Busca o artigo antigo na lista
-            var artigoExistente = ListaDeArtigos.FirstOrDefault(a => a.id == id);
+            // Verifica se existe
+            var artigoExistente = await _context.Artigos.FindAsync(id);
+            if (artigoExistente == null) return NotFound();
 
-            if (artigoExistente== null) return NotFound();
-
-            // 2. Atualiza os dados
+            // Atualiza os dados
             artigoExistente.Titulo = artigoAtualizado.Titulo;
             artigoExistente.Conteudo = artigoAtualizado.Conteudo;
-            artigoExistente.Autor = artigoExistente.Autor;
-            // Nota: não atualizamos a DataPublicacao para manter a original
+            artigoExistente.Autor = artigoAtualizado.Autor;
+            // Não mexemos na data original
+
+            // Grava as alterações
+            await _context.SaveChangesAsync();
 
             return Ok(artigoExistente);
+        }
+
+        // DELETE: /Artigos/5 (Apaga)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var artigo = await _context.Artigos.FindAsync(id);
+            if (artigo == null) return NotFound();
+
+            _context.Artigos.Remove(artigo);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }

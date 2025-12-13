@@ -29,7 +29,7 @@ const LerArtigo = () => {
     if (!artigo) return <div className="p-10 text-center">Carregando...</div>;
 
     return (
-        <div className="max-w-3xl mx-auto bg-white min-h-screen shadow-sm border-x border-slate-100">
+        <div className="max-w-3xl mx-auto bg-white shadow-sm border border-slate-100 my-12 rounded-lg overflow-hidden">
             {/* Cabeçalho do Artigo */}
             <div className="p-8 border-b border-slate-100">
                 <button onClick={() => navigate('/')} className="flex items-center text-slate-500 hover:text-amber-600 mb-6 transition">
@@ -51,6 +51,19 @@ const LerArtigo = () => {
                     </div>
                 </div>
             </div>
+
+            {/* --- CÓDIGO NOVO (PASSO 3): Banner da Imagem --- */}
+            {/* Só mostra se tiver imagem salva */}
+            {artigo.urlImagem && (
+                <div className="w-full h-64 md:h-96 overflow-hidden bg-slate-100">
+                    <img
+                        src={artigo.urlImagem}
+                        alt={artigo.titulo}
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+            )}
+            {/* ------------------------------------- */}
 
             {/* Conteúdo do Artigo (O Texto Rico) */}
             <div className="p-8 prose prose-slate max-w-none">

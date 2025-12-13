@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { BookOpen, PenTool, Settings, LogOut, Menu } from 'lucide-react';
+import { BookOpen, PenTool, Settings, LogOut, Menu, MessageSquare } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 interface LayoutProps {
@@ -8,81 +8,99 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-    // 2. Iniciamos o GPS
     const navigate = useNavigate();
-    const location = useLocation(); // Serve para saber em qual página estamos agora
+    const location = useLocation();
+
+    // Função de Logout com Confirmação
+    const handleLogout = () => {
+        // Só executa se o usuário clicar em "OK" no alerta
+        if (window.confirm("Tem certeza que você quer sair?")) {
+            // 1. Remove o token e o nome do usuário
+            localStorage.removeItem('token-blog');
+            localStorage.removeItem('usuario-nome');
+
+            // 2. Redireciona para o login
+            navigate('/login');
+        }
+    };
 
     return (
-        <div className= "flex h-screen bg-slate-50" >
-        {/* Sidebar (Menu Lateral) */ }
-        < div className = {`${isSidebarOpen ? 'w-64' : 'w-20'} bg-slate-900 text-white transition-all duration-300 flex flex-col`
-}>
-    <div className="p-4 flex items-center justify-between border-b border-slate-700" >
-        { isSidebarOpen && <h1 className="font-serif text-xl font-bold text-amber-500" > JurisBlog </h1>}
-<button onClick={ () => setIsSidebarOpen(!isSidebarOpen) } className = "p-1 hover:bg-slate-800 rounded" >
-    <Menu size={ 24 } />
-        </button>
-        </div>
+        <div className="flex h-screen bg-slate-50">
+            {/* Sidebar (Menu Lateral) */}
+            <div className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-slate-900 text-white transition-all duration-300 flex flex-col`}>
 
-                < nav className="flex-1 p-4 space-y-2" >
-                    {/* Botão Meus Artigos (Home) */}
+                {/* Topo do Menu */}
+                <div className="p-4 flex items-center justify-between border-b border-slate-700">
+                    {isSidebarOpen && <h1 className="font-serif text-xl font-bold text-amber-500">JurisBlog</h1>}
+                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1 hover:bg-slate-800 rounded">
+                        <Menu size={24} />
+                    </button>
+                </div>
+
+                {/* Lista de Links */}
+                <nav className="flex-1 p-4 space-y-2">
                     <NavItem
                         icon={<BookOpen size={20} />}
                         text="Meus Artigos"
                         isOpen={isSidebarOpen}
-                        // Fica ativo se o endereço for "/" ou vazio
-                        active={location.pathname === '/'}
-                        // Navega para a Home
-                        onClick={() => navigate('/')} />
-                    {/* Botão Novo Artigo */}
+                        active={location.pathname === '/admin' || location.pathname === '/'}
+                        onClick={() => navigate('/admin')}
+                    />
 
                     <NavItem
                         icon={<PenTool size={20} />}
                         text="Novo Artigo"
                         isOpen={isSidebarOpen}
-                        // Fica ativo se o endereço for "/novo"
                         active={location.pathname === '/novo'}
-                        // Navega para a tela de Novo Artigo
                         onClick={() => navigate('/novo')}
+                    />
+
+                    <NavItem
+                        icon={<MessageSquare size={20} />}
+                        text="Fale Conosco"
+                        isOpen={isSidebarOpen}
+                        active={location.pathname === '/contato'}
+                        onClick={() => navigate('/contato')}
                     />
 
                     <NavItem
                         icon={<Settings size={20} />}
                         text="Configurações"
                         isOpen={isSidebarOpen}
-                        // Exemplo: sem ação por enquanto
                         onClick={() => alert("Em construção!")}
                     />
-                 </nav>
+                </nav>
 
-                 < div className = "p-4 border-t border-slate-700" >
-                    <NavItem icon={<LogOut size={20} />}
+                {/* Rodapé do Menu com LOGOUT */}
+                <div className="p-4 border-t border-slate-700">
+                    <NavItem
+                        icon={<LogOut size={20} />}
                         text="Sair"
                         isOpen={isSidebarOpen}
-                        onClick={() => alert("Fazendo Logout...")}/>
-                  </div>
+                        onClick={handleLogout} // Chama a função com confirmação
+                    />
                 </div>
+            </div>
 
-                {/* Conteúdo Principal */ }
-                <main className="flex-1 overflow-auto p-8" >
-                    <div className="max-w-5xl mx-auto" >
-                        { children }
-                        </div>
-                        </main>
-                        </div>
-  );
-            };
+            {/* Conteúdo Principal */}
+            <main className="flex-1 overflow-auto p-8">
+                <div className="max-w-5xl mx-auto">
+                    {children}
+                </div>
+            </main>
+        </div>
+    );
+};
 
-// Pequeno componente auxiliar atualizado para aceitar o onClick
-// Adicionei 'onClick' aqui nas propriedades
+// Componente auxiliar NavItem
 const NavItem = ({ icon, text, isOpen, active = false, onClick }: any) => (
     <div
-        onClick={onClick} // Ligamos o clique aqui
+        onClick={onClick}
         className={`flex items-center gap-4 p-3 rounded cursor-pointer transition-colors ${active ? 'bg-amber-600 text-white' : 'hover:bg-slate-800 text-slate-300'}`}
     >
         {icon}
         {isOpen && <span className="whitespace-nowrap font-medium">{text}</span>}
     </div>
 );
-        export default Layout;
+
+export default Layout;
