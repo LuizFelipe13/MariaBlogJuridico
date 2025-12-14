@@ -1,4 +1,4 @@
-namespace MariaBlogJuridico
+namespace JurisBlog
 {
     public class WeatherForecast
     {

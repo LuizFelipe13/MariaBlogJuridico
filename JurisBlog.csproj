@@ -41,6 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="ClientApp\src\components\Footer.tsx" />
     <None Remove="ClientApp\src\components\Layout.tsx" />
     <None Remove="ClientApp\src\components\PublicLayout.tsx" />
     <None Remove="ClientApp\src\components\RotaProtegida.tsx" />
@@ -51,6 +52,7 @@
     <None Remove="ClientApp\src\pages\LerArtigo.tsx" />
     <None Remove="ClientApp\src\pages\Login.tsx" />
     <None Remove="ClientApp\src\pages\NovoArtigo.tsx" />
+    <None Remove="ClientApp\src\pages\Sobre.tsx" />
   </ItemGroup>
 
   <ItemGroup>

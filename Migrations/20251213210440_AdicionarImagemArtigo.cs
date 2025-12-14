@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace MariaBlogJuridico.Migrations
+namespace JurisBlog.Migrations
 {
     /// <inheritdoc />
     public partial class AdicionarImagemArtigo : Migration

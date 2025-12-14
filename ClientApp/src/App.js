@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import Login from './pages/Login.tsx';
 import RotaProtegida from './components/RotaProtegida.tsx';
+import Sobre from './pages/Sobre.tsx';
 
 // Layouts
 import Layout from './components/Layout.tsx';       // Layout Admin (Sidebar)
@@ -115,6 +116,11 @@ function App() {
                 <RotaProtegida>
                     <Layout><EditarArtigo /></Layout>
                 </RotaProtegida>
+            } />
+            <Route path="/sobre" element={
+                <PublicLayout>
+                    <Sobre />
+                </PublicLayout>
             } />
         </Routes>
     );

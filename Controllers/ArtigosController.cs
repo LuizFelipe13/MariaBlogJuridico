@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore; // Necessário para o banco de dados
-using MariaBlogJuridico.Data;        // Necessário para ver o AppDbContext
-using MariaBlogJuridico.Models;      // Necessário para ver o Artigo
+using JurisBlog.Data;        // Necessário para ver o AppDbContext
+using JurisBlog.Models;      // Necessário para ver o Artigo
 
-namespace MariaBlogJuridico.Controllers
+namespace JurisBlog.Controllers
 {
     [Route("[controller]")]
     [ApiController]
